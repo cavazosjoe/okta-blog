@@ -31,20 +31,20 @@ However, what if you want to combine both database and SAML authentication metho
 
 Much of the groundwork for the implementation of SAML 2.0 authentication used in this project was developed by [Vincenzo De Notaris](https://github.com/vdenotaris) and can be found in [this project on GitHub](https://github.com/vdenotaris/spring-boot-security-saml-sample). For this project, some changes have been made to support dual DB + SAML authentication and use Okta as the SAML IDP rather than SSOCircle.
 
-## Combining SAML, Okta and DB Auth in Spring Boot
+## SAML Authentication with Spring Boot
 
-### Why SAML? Why Okta?
+### The Benefits of SAML Authentication
 
 There are several benefits to using SAML to handle authentication for your application:
 
 - **Loose coupling between your application and your authentication mechanism** increases independence between the two, allowing for more rapid development/evolution of application logic with less risk
 of regression
-- **Shifts the responsibility of authentication**, which involves storing and retrieving sensitive user information, to the Identity Provider (e.g., Okta) which will almost always offer less risk since identity management **is** their business model
+- **Shifts the responsibility of authentication**, which involves storing and retrieving sensitive user information, to the Identity Provider (e.g., Okta) which almost always offers less risk since identity management **is** their business model
 - Allows for an **improved user experience** via Single Sign-On while navigating between multiple apps
 
 **Okta is a very well-established identity provider with robust features and a wealth of support.** Managing users, accounts, and permissions with Okta is simple and straightforward. Simultaneously, it is still flexible and extensible enough to support your application no matter how much it grows (even as it grows into several applications). And the friendly, growing community is available to answer any questions you may have!
 
-You will need to sign up for a **FREE** trial account at [okta.com/free-trial](https://www.okta.com/free-trial/) to complete this tutorial.
+You need to sign up for a **FREE** trial account at [okta.com/free-trial](https://www.okta.com/free-trial/) to complete this tutorial.
 
 Still, maybe to support legacy systems or because you have strange security requirements, you may need to allow users to authenticate using either SAML or database credentials. The process to combine SAML 2.0 with DB auth in Spring Boot is what we'll tackle here!
 
@@ -58,7 +58,7 @@ git clone https://github.com/cavazosjoe/okta-saml-spring-boot
 
 First look at the Maven POM file located at `/pom.xml`.
 
-This application inherits from the `spring-boot-starter-parent` parent project. This will provide you with Spring Boot's dependency and plugin management:
+This application inherits from the `spring-boot-starter-parent` parent project. This provides you with Spring Boot's dependency and plugin management:
 
 ```xml
 <parent>
@@ -72,7 +72,7 @@ This project uses the following Spring Boot Starter dependencies:
 - `spring-boot-starter` provides core application libraries, configuration support, and logging
 - `spring-boot-starter-web` provides support for building web applications
 - `spring-boot-starter-security` provides support for securing the application (e.g., Basic Auth, Form Login)
-- `spring-boot-starter-data-jpa` provides support for the Java Persistence API, which will be used to communicate with the database for DB authentication
+- `spring-boot-starter-data-jpa` provides support for the Java Persistence API, which is used to communicate with the database for DB authentication
 - `spring-boot-starter-thymeleaf` provides support for the [Thymeleaf](https://www.thymeleaf.org/) templating engine, a simple and powerful way to create web pages for Spring Boot applications
 
 ```xml
@@ -151,9 +151,9 @@ The following dependencies are also to make life easier:
 </dependencies>
 ```
 
-### The "Pre-Login" Page
+### The SAML and Database Auth "Pre-Login" Page
 
-You want to have an initial page in which a user will enter their username for login. Depending on the username pattern, you will either direct the user to a standard username/password page for authenticating against the database or direct them to the SAML auth flow.
+You want to have an initial page in which a user enters their username for login. Depending on the username pattern, you either direct the user to a standard username/password page for authenticating against the database or direct them to the SAML auth flow.
 
 The Thymeleaf templates for this tutorial are located in the `/src/main/resources/templates/` directory.
 
@@ -225,7 +225,7 @@ The `WebSecurityConfig` class, which extends the `WebSecurityConfigurerAdapter` 
 - Required permissions for URLs within the application
 - Logging out 
 
-When redirected to the `/doSaml` endpoint, the SAML flow will be initiated by a custom authentication entry point defined in `WebSecurityConfig.configure(HttpSecurity)`:
+When redirected to the `/doSaml` endpoint, the SAML flow is initiated by a custom authentication entry point defined in `WebSecurityConfig.configure(HttpSecurity)`:
 
 
 `/src/main/java/com/okta/developer/config/WebSecurityConfig.java`
@@ -260,7 +260,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements D
 }
 ```
 
-Here you can see if the requested URL ends with `doSaml`, the request will be handled by the `SamlEntryPoint` defined in your configuration. This will redirect the user to authenticate via Okta, and will return the user to `/doSaml` upon completion. To handle this redirect, you will also need to define a `Controller` to redirect the user following a successful SAML auth:
+Here you can see if the requested URL ends with `doSaml`, the request is handled by the `SamlEntryPoint` defined in your configuration. This redirects the user to authenticate via Okta, and returns the user to `/doSaml` upon completion. To handle this redirect, a `Controller` is defined to redirect the user following a successful SAML auth:
 
 `/src/main/java/com/okta/developer/controller/SamlResponseController.java`
 ```java
@@ -285,7 +285,7 @@ At this point, the user should be successfully authenticated with the app!
 
 ### Authenticating with the Database
 
-If the username matches another pattern, the user will be redirected to a standard-looking form login page:
+If the username matches another pattern, the user is redirected to a standard-looking form login page:
 
 `/src/main/resources/templates/form-login.html`
 ```html
@@ -313,7 +313,7 @@ If the username matches another pattern, the user will be redirected to a standa
 </html>
 ```
 
-The login submission will be handled by a `@Controller` which will call on the `AuthenticationManager` built in `WebSecurityConfig`:
+The login submission is handled by a `@Controller` which calls on the `AuthenticationManager` built in `WebSecurityConfig`:
 
 `/src/main/java/com/okta/developer/config/WebSecurityConfig.java`
 ```java
@@ -463,9 +463,9 @@ public class DbLoginController {
 }
 ```
 
-When `doLogin()` is called via `POST`, the `AuthenticationManager` will handle the username/password authentication and redirect the user if successful.
+When `doLogin()` is called via `POST`, the `AuthenticationManager` handles the username/password authentication and redirect the user if successful.
 
-For ease of use, two users are defined in the database: one for DB auth and one for SAML. Both users are defined in our database, but only one of them will be authenticated against the database:
+For ease of use, two users are defined in the database: one for DB auth and one for SAML. Both users are defined in our database, but only one of them is authenticated against the database:
 
 `/src/main/resources/data.sql`
 ```sql
