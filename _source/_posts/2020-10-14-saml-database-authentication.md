@@ -33,30 +33,27 @@ Much of the groundwork for the implementation of SAML 2.0 authentication used in
 
 ## SAML Authentication with Spring Boot
 
-### The Benefits of SAML Authentication
-
 There are several benefits to using SAML to handle authentication for your application:
 
-- **Loose coupling between your application and your authentication mechanism** increases independence between the two, allowing for more rapid development/evolution of application logic with less risk
-of regression
+- **Loose coupling between your application and your authentication mechanism** increases independence between the two, allowing for more rapid development/evolution of application logic with less risk of regression
 - **Shifts the responsibility of authentication**, which involves storing and retrieving sensitive user information, to the Identity Provider (e.g., Okta) which almost always offers less risk since identity management **is** their business model
 - Allows for an **improved user experience** via Single Sign-On while navigating between multiple apps
 
-**Okta is a very well-established identity provider with robust features and a wealth of support.** Managing users, accounts, and permissions with Okta is simple and straightforward. Simultaneously, it is still flexible and extensible enough to support your application no matter how much it grows (even as it grows into several applications). And the friendly, growing community is available to answer any questions you may have!
+Okta is a very well-established identity provider with robust features and a wealth of support. Managing users, accounts, and permissions with Okta is simple and straightforward. Simultaneously, it is still flexible and extensible enough to support your application no matter how much it grows (even as it grows into several applications). And the friendly, growing community is available to answer any questions you may have!
 
-You need to sign up for a **FREE** trial account at [okta.com/free-trial](https://www.okta.com/free-trial/) to complete this tutorial.
+You need to sign up for a **FREE** trial account at [okta.com/free-trial](https://www.okta.com/free-trial/) to complete this tutorial. If you already have a developer account, you should be able complete this tutorial by switching to the Classic UI in the top-left corner.
 
 Still, maybe to support legacy systems or because you have strange security requirements, you may need to allow users to authenticate using either SAML or database credentials. The process to combine SAML 2.0 with DB auth in Spring Boot is what we'll tackle here!
 
 ### How to Combine Database and SAML Authentication in Spring Boot
 
-To get started, clone the [repository](https://github.com/cavazosjoe/okta-saml-spring-boot) for this tutorial:
+To get started, clone the [repository](https://github.com/oktadeveloper/okta-spring-boot-saml-db-example) for this tutorial:
 
 ```sh
-git clone https://github.com/cavazosjoe/okta-saml-spring-boot
+git clone https://github.com/oktadeveloper/okta-spring-boot-saml-db-example.git
 ```
 
-First look at the Maven POM file located at `/pom.xml`.
+Open the project up in your favorite IDE or editor and take a look at the Maven POM file located at `/pom.xml`.
 
 This application inherits from the `spring-boot-starter-parent` parent project. This provides you with Spring Boot's dependency and plugin management:
 
@@ -64,45 +61,18 @@ This application inherits from the `spring-boot-starter-parent` parent project. 
 <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.3.3.RELEASE</version>
+    <version>2.3.4.RELEASE</version>
 </parent>
 ```
 
 This project uses the following Spring Boot Starter dependencies:
-- `spring-boot-starter` provides core application libraries, configuration support, and logging
+
 - `spring-boot-starter-web` provides support for building web applications
 - `spring-boot-starter-security` provides support for securing the application (e.g., Basic Auth, Form Login)
 - `spring-boot-starter-data-jpa` provides support for the Java Persistence API, which is used to communicate with the database for DB authentication
 - `spring-boot-starter-thymeleaf` provides support for the [Thymeleaf](https://www.thymeleaf.org/) templating engine, a simple and powerful way to create web pages for Spring Boot applications
 
-```xml
-<dependency>
-    ...
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot </groupId>
-        <artifactId>spring-boot-starter-thymeleaf</artifactId>
-    </dependency>
-    ...
-</dependency>
-```
-
-The `spring-security-saml2-core` extension for Spring Boot provides the necessary SAML-related libraries. This extension depends on the `opensaml` library, which is contained in the [Shibboleth repository](https://build.shibboleth.net/nexus) and must be added to the `<repositories>` block in the same `pom.xml` file: 
+The `spring-security-saml2-core` extension for Spring Boot provides the necessary SAML-related libraries. This extension depends on the `opensaml` library, which is contained in the [Shibboleth repository](https://build.shibboleth.net/nexus) and is added to the `<repositories>` block: 
 
 ```xml
 <repositories>
@@ -124,38 +94,17 @@ The `spring-security-saml2-core` extension for Spring Boot provides the necessar
 </dependencies>
 ```
 
-The following dependencies are also to make life easier:
+The following dependencies also make life easier:
 
 - `com.h2database:h2` to provide a simple in-memory database
 - `org.projectlombok:lombok` to reduce boilerplate code (e.g. getters, setters, `toString()`)
-    - **Note:** some IDEs have trouble digesting Lombok-ified code due to version and plugin incompatibilities. If you have difficulty compiling this project, consider removing this dependency and adding the missing boilerplate code
 - `nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect` a useful add-on for formatting Thymeleaf templates
 
-```xml
-<dependencies>
-    ...
-    <dependency>
-        <groupId>nz.net.ultraq.thymeleaf</groupId>
-        <artifactId>thymeleaf-layout-dialect</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.projectlombok</groupId>
-        <artifactId>lombok</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>com.h2database</groupId>
-        <artifactId>h2</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-    ...
-</dependencies>
-```
+**NOTE:** Some IDEs have trouble digesting Lombok-ified code due to version and plugin incompatibilities. If you have difficulty compiling this project, consider removing this dependency and adding the missing boilerplate code, or just use Maven to build/run.
 
 ### The SAML and Database Auth "Pre-Login" Page
 
 You want to have an initial page in which a user enters their username for login. Depending on the username pattern, you either direct the user to a standard username/password page for authenticating against the database or direct them to the SAML auth flow.
-
-The Thymeleaf templates for this tutorial are located in the `/src/main/resources/templates/` directory.
 
 `/src/main/resources/templates/index.html`
 ```html
@@ -220,13 +169,13 @@ Within `IndexController`, you are checking whether the username matches a partic
 ### Authenticating with SAML
 
 The `WebSecurityConfig` class, which extends the `WebSecurityConfigurerAdapter` parent, defines much of the security settings, including:
+
 - The filter chains to handle SAML requests and responses
 - How and when to authenticate a user with either the database or SAML/Okta
 - Required permissions for URLs within the application
 - Logging out 
 
 When redirected to the `/doSaml` endpoint, the SAML flow is initiated by a custom authentication entry point defined in `WebSecurityConfig.configure(HttpSecurity)`:
-
 
 `/src/main/java/com/okta/developer/config/WebSecurityConfig.java`
 ```java
@@ -463,7 +412,7 @@ public class DbLoginController {
 }
 ```
 
-When `doLogin()` is called via `POST`, the `AuthenticationManager` handles the username/password authentication and redirect the user if successful.
+When `doLogin()` is called via `POST`, the `AuthenticationManager` handles the username/password authentication and redirects the user if successful.
 
 For ease of use, two users are defined in the database: one for DB auth and one for SAML. Both users are defined in our database, but only one of them is authenticated against the database:
 
@@ -478,7 +427,7 @@ INSERT INTO user (ID, USERNAME, PASSWORD_HASH) VALUES
 
 > Step 1
 
-Clone the repository [here](https://gitlab.com/jcavazos/okta-saml-spring-boot) if you have not already.
+Clone the [okta-spring-boot-saml-db-example repository](https://github.com/oktadeveloper/okta-spring-boot-saml-db-example) if you have not already.
 
 > Step 2
 
@@ -486,7 +435,7 @@ Sign up for a free trial account at <https://www.okta.com/free-trial/> (this is 
 
 > Step 3
 
-Log in to your Okta IT Trial at <https://my-okta-domain.okta.com>.
+Log in to your Okta IT Trial at <https://your-okta-domain.okta.com>.
 
 > Step 4
 
@@ -504,12 +453,21 @@ Create a new application via **Admin** > **Applications** > **Add Application** 
 
 * **Platform:** `Web`
 * **Sign On Method:** `SAML 2.0`
-* **App Name:** `Spring Boot DB/SAML` (or whatever you'd like)
+
+Click **Create**. Enter an App name like `Spring Boot DB/SAML` (or whatever you'd like). Click **Next**.
+
+Enter the following SAML Settings:
+
 * **Single Sign On URL:** `http://localhost:8080/saml/SSO`
 * **Use this for Recipient URL and Destination URL:** `YES`
-* **Audience URI:** `http://localhost:8080/saml/metadata`
+* **Audience URI:** <http://localhost:8080/saml/metadata>
+
+Click **Next** and select the following two options:
+
 * **I'm an Okta customer adding an internal app**
 * **This is an internal app that we have created**
+
+Then, click **Finish**
 
 > Step 5
 
@@ -526,7 +484,7 @@ Assign to your account with the custom username `samluser@oktaauth.com`
 > Step 7
 
 Navigate to **Sign On** > **View Setup Instructions** and copy the following values to your `/src/main/resources/application.properties` file:
-* `saml.metadataUrl` -- Identity Provider Metadata URL
+* `saml.metadataUrl` -- Identity Provider Single Sign-On URL
 * `saml.idp` -- Identity Provider Issuer
 
 {% img blog/spring-boot-dual-saml-db-auth/08.png alt:"Open your application's Setup Instructions" width:"800" %}{: .center-image }
@@ -545,14 +503,13 @@ Navigate to your application's home page at `http://localhost:8080`.
 
 > Step 10
 
-* For DB Authentication, log in using `dbuser@dbauth.com / oktaiscool`.
+*For DB Authentication, log in using `dbuser@dbauth.com / oktaiscool`.
 
 {% img blog/spring-boot-dual-saml-db-auth/11.png alt:"The DB Login Page" width:"800" %}{: .center-image }
 
 {% img blog/spring-boot-dual-saml-db-auth/12.png alt:"Successful DB login" width:"800" %}{: .center-image }
 
-* For SAML/Okta Authentication, log in using `samluser@oktaauth.com`.
-    * You should be redirected to the SAML/Okta auth flow and returned to your application following successful authentication
+*For SAML/Okta Authentication, sign in using <mailto:samluser@oktaauth.com>. You should be redirected to the SAML/Okta auth flow and returned to your application following successful authentication
     
 {% img blog/spring-boot-dual-saml-db-auth/13.png alt:"Use your SAML username on the pre-login page" width:"800" %}{: .center-image }
 
@@ -563,11 +520,13 @@ Navigate to your application's home page at `http://localhost:8080`.
 You're done! You've successfully configured your project to support authentication via both the database and SAML 2.0!
 
 ## Learn More About SAML and Okta
+
 Much of the complexity of this project comes from the need to combine both database and SAML authentication in one app. Normally you would choose one or the other. If you want to use only SAML for authentication (which is a fine idea, especially using Okta), visit [this blog post](https://developer.okta.com/blog/2017/03/16/spring-boot-saml) using the standard Spring SAML DSL extension to integrate with Okta and SAML to secure your application.
 
-See a good primer on how SAML works here: [How SAML Authentication Works](https://auth0.com/blog/how-saml-authentication-works/)
+See a good primer on how SAML works here: [What is SAML and How Does it Work?](https://www.varonis.com/blog/what-is-saml/)
 
 Check out some other articles on authentication in Spring Boot:
+
 - [Use Spring Boot and MySQL to go Beyond Authentication](https://developer.okta.com/blog/2019/07/03/spring-boot-jpa)
 - [A Quick Guide to Spring Boot Login Options](https://developer.okta.com/blog/2019/05/15/spring-boot-login-options)
 - [Build a Web App with Spring Boot and Spring Security in 15 Minutes](https://developer.okta.com/blog/2018/09/26/build-a-spring-boot-webapp)
@@ -575,4 +534,6 @@ Check out some other articles on authentication in Spring Boot:
 
 Provide comments, questions, and any feedback in the comments section below.
 
-Follow us on social media ([Twitter](https://twitter.com/oktadev), [Facebook](https://www.facebook.com/oktadevelopers), [LinkedIn](https://www.linkedin.com/company/oktadev/)) to know when we've posted more articles like this, and please [subscribe](https://youtube.com/c/oktadev?sub_confirmation=1) to our [YouTube channel](https://youtube.com/c/oktadev) for tutorials and screencasts! 
+Follow us on social media ([Twitter](https://twitter.com/oktadev), [Facebook](https://www.facebook.com/oktadevelopers), [LinkedIn](https://www.linkedin.com/company/oktadev/)) to know when we've posted more articles like this, and please [subscribe](https://youtube.com/c/oktadev?sub_confirmation=1) to our [YouTube channel](https://youtube.com/c/oktadev) for tutorials and screencasts!
+
+_We're also streaming on Twitch, [follow us](https://www.twitch.tv/oktadev) to be notified when we're live._ 
