@@ -69,27 +69,31 @@ Create a new application via **Admin** > **Applications** > **Add Application** 
 
 {% img blog/spring-boot-dual-saml-db-auth/01.png alt:"Click on the Admin button" width:"800" %}{: .center-image }
 
+Click **Admin**.
+
 {% img blog/spring-boot-dual-saml-db-auth/02.png alt:"Select SAML 2.0" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/03.png alt:"Name your Okta application" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/04_2.png alt:"Provide your SSO and Audience URLs" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/05.png alt:"Specify your app's use case" width:"800" %}{: .center-image }
 
 * **Platform:** `Web`
 * **Sign On Method:** `SAML 2.0`
 
-Click **Create**. Enter an App name like `Spring Boot DB/SAML` (or whatever you'd like). Click **Next**.
+Click **Create**.
+
+{% img blog/spring-boot-dual-saml-db-auth/03.png alt:"Name your Okta application" width:"800" %}{: .center-image }
+
+Enter an **App name** like `Spring Boot DB/SAML` (or whatever you'd like). Click **Next**.
+
+{% img blog/spring-boot-dual-saml-db-auth/04_2.png alt:"Provide your SSO and Audience URLs" width:"800" %}{: .center-image }
 
 Enter the following SAML Settings:
-
 * **Single Sign On URL:** `http://localhost:8080/saml/SSO`
 * **Use this for Recipient URL and Destination URL:** `YES`
 * **Audience URI:** <http://localhost:8080/saml/metadata>
 
-Click **Next** and select the following two options:
+Click **Next**.
 
+{% img blog/spring-boot-dual-saml-db-auth/05.png alt:"Specify your app's use case" width:"800" %}{: .center-image }
+
+Select the following two options:
 * **I'm an Okta customer adding an internal app**
 * **This is an internal app that we have created**
 
