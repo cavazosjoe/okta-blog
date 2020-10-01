@@ -113,11 +113,15 @@ Assign to your account with the custom username `samluser@oktaauth.com`
 
 > Step 7
 
-Navigate to **Sign On** > **View Setup Instructions** and copy the following values to your `/src/main/resources/application.properties` file:
-* `saml.metadataUrl` -- Identity Provider Single Sign-On URL
-* `saml.idp` -- Identity Provider Issuer
+Navigate to **Sign On** and copy the following values to your `/src/main/resources/application.properties` file:
 
-{% img blog/spring-boot-dual-saml-db-auth/08.png alt:"Open your application's Setup Instructions" width:"800" %}{: .center-image }
+* `saml.idp` -- Click the **View Setup Instructions** button and copy the value in **(2) Identity Provider Issuer**.
+
+{% img blog/spring-boot-dual-saml-db-auth/09_2.png alt:"Copy the value for Identity Provider Issuer" width:"800" %}{: .center-image }
+
+* `saml.metadataUrl` -- Right-click and copy the URL from the **Identity Provider metadata** link below the **View Setup Instructions** button.
+
+{% img blog/spring-boot-dual-saml-db-auth/08_2.png alt:"Copy the URL for Identity Provider metadata" width:"800" %}{: .center-image }
 
 > Step 8
 
