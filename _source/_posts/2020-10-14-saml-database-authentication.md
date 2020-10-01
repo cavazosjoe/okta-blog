@@ -45,9 +45,109 @@ You need to sign up for a **FREE** trial account at [okta.com/free-trial](https:
 
 Still, maybe to support legacy systems or because you have strange security requirements, you may need to allow users to authenticate using either SAML or database credentials. The process to combine SAML 2.0 with DB auth in Spring Boot is what we'll tackle here!
 
+## Setup Your Okta Account with SAML and Run the Application
+
+> Step 1
+
+Clone the [okta-spring-boot-saml-db-example repository](https://github.com/oktadeveloper/okta-spring-boot-saml-db-example):
+
+```sh
+git clone https://github.com/oktadeveloper/okta-spring-boot-saml-db-example.git
+```
+
+> Step 2
+
+Sign up for a free trial account at <https://www.okta.com/free-trial/> (this is required to create SAML 2.0 applications in Okta).
+
+> Step 3
+
+Log in to your Okta IT Trial at <https://your-okta-domain.okta.com>.
+
+> Step 4
+
+Create a new application via **Admin** > **Applications** > **Add Application** > **Create New App** with the following settings:
+
+{% img blog/spring-boot-dual-saml-db-auth/01.png alt:"Click on the Admin button" width:"800" %}{: .center-image }
+
+{% img blog/spring-boot-dual-saml-db-auth/02.png alt:"Select SAML 2.0" width:"800" %}{: .center-image }
+
+{% img blog/spring-boot-dual-saml-db-auth/03.png alt:"Name your Okta application" width:"800" %}{: .center-image }
+
+{% img blog/spring-boot-dual-saml-db-auth/04_2.png alt:"Provide your SSO and Audience URLs" width:"800" %}{: .center-image }
+
+{% img blog/spring-boot-dual-saml-db-auth/05.png alt:"Specify your app's use case" width:"800" %}{: .center-image }
+
+* **Platform:** `Web`
+* **Sign On Method:** `SAML 2.0`
+
+Click **Create**. Enter an App name like `Spring Boot DB/SAML` (or whatever you'd like). Click **Next**.
+
+Enter the following SAML Settings:
+
+* **Single Sign On URL:** `http://localhost:8080/saml/SSO`
+* **Use this for Recipient URL and Destination URL:** `YES`
+* **Audience URI:** <http://localhost:8080/saml/metadata>
+
+Click **Next** and select the following two options:
+
+* **I'm an Okta customer adding an internal app**
+* **This is an internal app that we have created**
+
+Then, click **Finish**
+
+> Step 5
+
+Navigate to **Assignments** > **Assign to People**
+
+{% img blog/spring-boot-dual-saml-db-auth/06.png alt:"Navigate to Assign To People" width:"800" %}{: .center-image }
+
+> Step 6
+
+Assign to your account with the custom username `samluser@oktaauth.com`
+
+{% img blog/spring-boot-dual-saml-db-auth/07.png alt:"Assign your application to yourself, with the custom username provided" width:"800" %}{: .center-image }
+
+> Step 7
+
+Navigate to **Sign On** > **View Setup Instructions** and copy the following values to your `/src/main/resources/application.properties` file:
+* `saml.metadataUrl` -- Identity Provider Single Sign-On URL
+* `saml.idp` -- Identity Provider Issuer
+
+{% img blog/spring-boot-dual-saml-db-auth/08.png alt:"Open your application's Setup Instructions" width:"800" %}{: .center-image }
+
+> Step 8
+
+Run your Spring Boot application in your IDE or via Maven:
+
+```sh
+mvn spring-boot:run
+```
+
+> Step 9
+
+Navigate to your application's home page at `http://localhost:8080`.
+
+> Step 10
+
+*For DB Authentication, log in using `dbuser@dbauth.com / oktaiscool`.
+
+{% img blog/spring-boot-dual-saml-db-auth/11.png alt:"The DB Login Page" width:"800" %}{: .center-image }
+
+{% img blog/spring-boot-dual-saml-db-auth/12.png alt:"Successful DB login" width:"800" %}{: .center-image }
+
+*For SAML/Okta Authentication, sign in using <mailto:samluser@oktaauth.com>. You should be redirected to the SAML/Okta auth flow and returned to your application following successful authentication
+    
+{% img blog/spring-boot-dual-saml-db-auth/13.png alt:"Use your SAML username on the pre-login page" width:"800" %}{: .center-image }
+
+{% img blog/spring-boot-dual-saml-db-auth/14.png alt:"Select your (Okta) Identity Provider" width:"800" %}{: .center-image }
+
+{% img blog/spring-boot-dual-saml-db-auth/15.png alt:"Successful SAML login result" width:"800" %}{: .center-image }
+
+You're done! You've successfully configured your project to support authentication via both the database and SAML 2.0!
+
 ### How to Combine Database and SAML Authentication in Spring Boot
 
-To get started, clone the [repository](https://github.com/oktadeveloper/okta-spring-boot-saml-db-example) for this tutorial:
+To get a better understanding of how DB and SAML auth are combined in this example, clone the [repository](https://github.com/oktadeveloper/okta-spring-boot-saml-db-example) for this tutorial if you have not already:
 
 ```sh
 git clone https://github.com/oktadeveloper/okta-spring-boot-saml-db-example.git
@@ -422,102 +522,6 @@ INSERT INTO user (ID, USERNAME, PASSWORD_HASH) VALUES
 ('17e3d83c-6e09-41b8-b4ee-b4b14cb8a797', 'dbuser@dbauth.com', '(bcrypted password)'),   /*DB AUTH*/
 ('17e3d83c-6e09-41b8-b4ee-b4b14cb8a798', 'samluser@oktaauth.com', 'bcrypted password'); /*SAML AUTH*/
 ```
-
-## Setup Your Okta Account with SAML and Run the Application
-
-> Step 1
-
-Clone the [okta-spring-boot-saml-db-example repository](https://github.com/oktadeveloper/okta-spring-boot-saml-db-example) if you have not already.
-
-> Step 2
-
-Sign up for a free trial account at <https://www.okta.com/free-trial/> (this is required to create SAML 2.0 applications in Okta).
-
-> Step 3
-
-Log in to your Okta IT Trial at <https://your-okta-domain.okta.com>.
-
-> Step 4
-
-Create a new application via **Admin** > **Applications** > **Add Application** > **Create New App** with the following settings:
-
-{% img blog/spring-boot-dual-saml-db-auth/01.png alt:"Click on the Admin button" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/02.png alt:"Select SAML 2.0" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/03.png alt:"Name your Okta application" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/04_2.png alt:"Provide your SSO and Audience URLs" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/05.png alt:"Specify your app's use case" width:"800" %}{: .center-image }
-
-* **Platform:** `Web`
-* **Sign On Method:** `SAML 2.0`
-
-Click **Create**. Enter an App name like `Spring Boot DB/SAML` (or whatever you'd like). Click **Next**.
-
-Enter the following SAML Settings:
-
-* **Single Sign On URL:** `http://localhost:8080/saml/SSO`
-* **Use this for Recipient URL and Destination URL:** `YES`
-* **Audience URI:** <http://localhost:8080/saml/metadata>
-
-Click **Next** and select the following two options:
-
-* **I'm an Okta customer adding an internal app**
-* **This is an internal app that we have created**
-
-Then, click **Finish**
-
-> Step 5
-
-Navigate to **Assignments** > **Assign to People**
-
-{% img blog/spring-boot-dual-saml-db-auth/06.png alt:"Navigate to Assign To People" width:"800" %}{: .center-image }
-
-> Step 6
-
-Assign to your account with the custom username `samluser@oktaauth.com`
-
-{% img blog/spring-boot-dual-saml-db-auth/07.png alt:"Assign your application to yourself, with the custom username provided" width:"800" %}{: .center-image }
-
-> Step 7
-
-Navigate to **Sign On** > **View Setup Instructions** and copy the following values to your `/src/main/resources/application.properties` file:
-* `saml.metadataUrl` -- Identity Provider Single Sign-On URL
-* `saml.idp` -- Identity Provider Issuer
-
-{% img blog/spring-boot-dual-saml-db-auth/08.png alt:"Open your application's Setup Instructions" width:"800" %}{: .center-image }
-
-> Step 8
-
-Run your Spring Boot application in your IDE or via Maven:
-
-```sh
-mvn spring-boot:run
-```
-
-> Step 9
-
-Navigate to your application's home page at `http://localhost:8080`.
-
-> Step 10
-
-*For DB Authentication, log in using `dbuser@dbauth.com / oktaiscool`.
-
-{% img blog/spring-boot-dual-saml-db-auth/11.png alt:"The DB Login Page" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/12.png alt:"Successful DB login" width:"800" %}{: .center-image }
-
-*For SAML/Okta Authentication, sign in using <mailto:samluser@oktaauth.com>. You should be redirected to the SAML/Okta auth flow and returned to your application following successful authentication
-    
-{% img blog/spring-boot-dual-saml-db-auth/13.png alt:"Use your SAML username on the pre-login page" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/14.png alt:"Select your (Okta) Identity Provider" width:"800" %}{: .center-image }
-
-{% img blog/spring-boot-dual-saml-db-auth/15.png alt:"Successful SAML login result" width:"800" %}{: .center-image }
-
-You're done! You've successfully configured your project to support authentication via both the database and SAML 2.0!
 
 ## Learn More About SAML and Okta
 
